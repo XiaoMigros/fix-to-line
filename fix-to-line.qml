@@ -12,12 +12,13 @@ import QtQuick.Dialogs 1.2
 
 MuseScore {
 
-  title: qsTr("Fix to Line")
-  version:  "1.0.1"
+  id: plugin
+  plugin.title: qsTr("Fix to Line")
+  version:  "1.0.2"
   description: qsTr("This plugin allows you to set the fix-to-line property for notes")
   pluginType: "dialog"
   requiresScore: true
-  categoryCode: "composing-arranging-tools"
+  plugin.categoryCode: "composing-arranging-tools"
 
   function applyToNotesAndRestsInSelection(func, value) {
     if (!curScore) {
