@@ -13,12 +13,18 @@ import QtQuick.Dialogs 1.2
 MuseScore {
 
   id: plugin
-  plugin.title: qsTr("Fix to Line")
-  version:  "1.0.2"
+  version:  "1.0.3"
   description: qsTr("This plugin allows you to set the fix-to-line property for notes")
   pluginType: "dialog"
   requiresScore: true
-  plugin.categoryCode: "composing-arranging-tools"
+  menuPath: "Plugins.Fix to Line";
+
+  Component.onCompleted: {
+    if (mscoreMajorVersion >= 4) {
+      plugin.title = qsTr("Fix to Line")
+      plugin.categoryCode = "composing-arranging-tools"
+    }
+  }
 
   function applyToNotesAndRestsInSelection(func, value) {
     if (!curScore) {
@@ -66,7 +72,7 @@ MuseScore {
         value: 0
       }
     }
-	DialogButtonBox {
+    DialogButtonBox {
       standardButtons: StandardButton.Ok | StandardButton.Cancel
       onAccepted: {
         curScore.startCmd()
@@ -76,9 +82,9 @@ MuseScore {
         quit()
       }
       onRejected: {
-         quit()
+        quit()
       }
     }
-  }//ColumnLayout
+  }
 
 }//MuseScore
