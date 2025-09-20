@@ -1,90 +1,98 @@
 /*
  * Copyright (C) 2023 Marc Sabatella
- * Edited        2023 XiaoMigros
+ * Edited        2025 XiaoMigros
  */
 
-
+import QtQuick 2.0
 import MuseScore 3.0
-import QtQuick 2.9
-import QtQuick.Controls 2.2
-import QtQuick.Layouts 1.2
-import QtQuick.Dialogs 1.2
+import QtQuick.Layouts
+import Muse.UiComponents 1.0 as MU
+import Muse.Ui 1.0
 
 MuseScore {
+    title: qsTr("Fix to Line")
+    categoryCode: "composing-arranging-tools"
+    description: qsTr("This plugin allows you to fix notes to specific lines on a staff, irrespective of their pitch.")
+    version:    "1.0.4"
+    pluginType: "dialog"
+    requiresScore: true
 
-  id: plugin
-  version:  "1.0.3"
-  description: qsTr("This plugin allows you to set the fix-to-line property for notes")
-  pluginType: "dialog"
-  requiresScore: true
-  menuPath: "Plugins.Fix to Line";
-
-  Component.onCompleted: {
-    if (mscoreMajorVersion >= 4) {
-      plugin.title = qsTr("Fix to Line")
-      plugin.categoryCode = "composing-arranging-tools"
+    function applyToNotesAndRestsInSelection(func, value) {
+        if (!curScore) {
+            return
+        }
+        for (var i in curScore.selection.elements) {
+            var e = curScore.selection.elements[i]
+            if (e.type == Element.NOTE) {
+                // not currently supported for rests
+                func(e, value)
+            }
+        }
     }
-  }
 
-  function applyToNotesAndRestsInSelection(func, value) {
-    if (!curScore) {
-      return
+    function setFixed(noterest, fixed) {
+        noterest.fixed = fixed
     }
-    for (var i in curScore.selection.elements) {
-      var e = curScore.selection.elements[i]
-      if (e.pitch) {
-        // not currently supported for rests
-        func(e, value)
-      }
+
+    function setFixedLine(noterest, line) {
+        noterest.fixedLine = line
     }
-  }
 
-  function setFixed(noterest, fixed) {
-    noterest.fixed = fixed
-  }
+    width: childrenRect.width
+    height: childrenRect.height
 
-  function setFixedLine(noterest, line) {
-    noterest.fixedLine = line
-  }
+    ColumnLayout {
+        id: content
 
-  width: content.implicitWidth
-  height: content.implicitHeight
+        RowLayout {
+            Layout.margins: 8
 
-  ColumnLayout {
-    id: content
-    RowLayout {
-      Layout.margins: 5
-      Label {
-        text: qsTr("Fix")
-      }
-      CheckBox {
-        id: fix
-        checked: true
-      }
-      Label {
-        text: qsTr("Line")
-      }
-      SpinBox {
-        id: line
-        enabled: fix.checked
-        from: -99
-        to: 99
-        value: 0
-      }
+            MU.CheckBox {
+                id: fix
+                checked: true
+                text: qsTr("Fix notes to line")
+                onClicked: {
+                    checked = !checked
+                }
+            }
+
+            MU.IncrementalPropertyControl {
+                Layout.maximumWidth: 60
+                id: line
+                enabled: fix.checked
+                minValue: -99
+                maxValue: 99
+                currentValue: 0
+                step: 1
+                onValueEdited: function(newValue) {
+                    currentValue = newValue
+                }
+            }
+        }
+
+        RowLayout {
+            Layout.margins: 8
+            Layout.alignment: Qt.AlignRight
+            spacing: 8
+
+            MU.FlatButton {
+                text: qsTr("Cancel")
+                onClicked: {
+                    quit()
+                }
+            }
+
+            MU.FlatButton {
+                accentButton: true
+                text: qsTr("OK")
+                onClicked: {
+                    curScore.startCmd()
+                    applyToNotesAndRestsInSelection(setFixed, fix.checked)
+                    applyToNotesAndRestsInSelection(setFixedLine, line.currentValue)
+                    curScore.endCmd()
+                    quit()
+                }
+            }
+        }
     }
-    DialogButtonBox {
-      standardButtons: StandardButton.Ok | StandardButton.Cancel
-      onAccepted: {
-        curScore.startCmd()
-        applyToNotesAndRestsInSelection(setFixed, fix.checked)
-        applyToNotesAndRestsInSelection(setFixedLine, line.value)
-        curScore.endCmd()
-        quit()
-      }
-      onRejected: {
-        quit()
-      }
-    }
-  }
-
-}//MuseScore
+}
